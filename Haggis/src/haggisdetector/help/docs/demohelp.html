@@ -1,0 +1,35 @@
+<html>
+
+<head>
+	<title>Demo Detector</title>
+
+<body>
+<h1>Demo Detector</h1>
+<h2>Overview</h2>
+<p>Help files for PAMGuard are in html format. You are advised to look at examples for other 
+detectors, which are all in sub folders of 'help' before writing your own. </p>
+<p>For plugin modules, you'll need to create a Java helpset. This is based around the 
+JavaHelp system for which there is plenty of documentation online.</p> 
+<p>The PAMGaurd team have been
+using <a href="https://sourceforge.net/projects/jhelpdev/">jhelpdev</a> which seems to work well
+enough, though it may be  a but out of date. jhelpdev will help you to automatically create the requires
+.hs helpset file and required xml files for content and indexes. The files for this are all 
+included in the src/help folder. If using jhelpdev, open the file DemoDetectorHelpProject.xml. 
+Note that you will probably have to change some of the paths in this file before you can 
+use it.<p>
+
+<h2>Help buttons in dialogs</h2>   
+<p>Dialogs based on subclasses of PamDialog can easily jump to the correct help page and 
+will display a Help button as in the example below. See WorkshopParametersDialog.java for
+an example</p>
+<br>
+<center><img alt="" src="../images/demodialog.png"></center>
+<br>
+
+<h2>Links</h2>
+<p>Links to external web pages should include the full url, starting with "http", 
+e.g. <a href="http://www.pamguard.org/">http://www.pamguard.org/</a></p>
+<p>Links to other documents within the main PAMGuard helpset are not currently possible</a></p>
+
+</body>
+</html>
