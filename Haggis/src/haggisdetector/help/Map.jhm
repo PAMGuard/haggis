@@ -6,9 +6,9 @@
 
 <mapID target="popup_icon" url="images/popup.gif "/>
 
-<mapID target="index" url="index.html"/>
+<mapID target="docs.haggishelp" url="docs/haggishelp.html"/>
 
-<mapID target="docs.demohelp" url="docs/demohelp.html"/>
+<mapID target="index" url="index.html"/>
 
 <mapID target="images.popup" url="images/popup.gif"/>
 

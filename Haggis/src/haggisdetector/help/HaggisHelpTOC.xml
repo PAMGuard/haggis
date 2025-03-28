@@ -3,8 +3,8 @@
 
 <toc version="1.0">
  <tocitem text="Detectors ">
-  <tocitem text="Demo Detector " target="docs.demohelp">
-   <tocitem text="Overview " target="docs.demohelp"/>
+  <tocitem text="Haggis Detector " target="docs.haggishelp">
+   <tocitem text="Overview " target="docs.haggishelp" image="images.popup"/>
 
   </tocitem>
  </tocitem>

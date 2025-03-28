@@ -70,7 +70,7 @@ public class HaggisParametersDialog extends PamDialog {
 		 * the plugins helpset is. This can be a bit different to the path 
 		 * for built in modules. The following works for this example. 
 		 */
-		setHelpPoint("docs.demohelp");
+		setHelpPoint("docs.haggishelp");
 		
 		/* 
 		 * put a sourcePanel in the top of the dialog panel. 
