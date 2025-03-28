@@ -10,8 +10,9 @@ makes a random classification to one of two (also entirely fictional) sub-specie
 
 All of this has been done in order to use as many PAMGuard features as possibe, including graphics overlays, data filters, symbol managers, a Tethys output module, etc. 
 
-We hope that you don't waste too much time actually searching for Haggis in the Scottish Highlands (though we do recommend visiting the area to enjoy the wonderful scenery). We do however hope that
-you find this example code useful, particularly if you're setting out on the journey of building your own PAMGuard module. 
+We hope that you don't waste too much time actually searching for Haggis in the Scottish Highlands (though we do recommend visiting the area to enjoy the wonderful scenery). 
+
+We hope that you **do** find this example code useful, particularly if you're setting out on the journey of building your own PAMGuard module. 
 
 Next year, should we be able to obtain sufficient high quality and accurately verified training data, we hope to build an AI classifier for the megafauna of Loch Ness.
 
