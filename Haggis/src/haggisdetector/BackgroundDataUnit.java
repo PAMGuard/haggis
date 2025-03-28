@@ -2,15 +2,14 @@ package haggisdetector;
 
 import PamguardMVC.AcousticDataUnit;
 import PamguardMVC.DataUnit2D;
-import PamguardMVC.PamDataUnit;
 
 public class BackgroundDataUnit extends DataUnit2D implements AcousticDataUnit {
 
 	private double background;
-	
+
 	/**
 	 * Main Constructor
-	 * 
+	 *
 	 * @param timeMilliseconds the time in milliseconds when the detection started
 	 * @param channelBitmap the channel bitmap for this detection
 	 * @param startSample the starting sample number

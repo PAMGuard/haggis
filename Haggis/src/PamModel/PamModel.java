@@ -727,9 +727,9 @@ final public class PamModel implements PamModelInterface, PamSettings {
 		 * Don't do it like thi sany more. See added line for a developmental plugin in 
 		 * loadPlugins(...) below. The latter method should also pick up the help files, etc .
 		 */
-		mi = PamModuleInfo.registerControlledUnit(HaggisControl.class.getName(), "Workshop Demo Detector");
+		mi = PamModuleInfo.registerControlledUnit(HaggisControl.class.getName(), "Haggis Detector");
 		mi.addDependency(new PamDependency(FFTDataUnit.class, "fftManager.PamFFTControl"));
-		mi.setToolTipText("Simple demo detector for programmers");
+		mi.setToolTipText("Detector for the Wild Scottish Haggis (Haggis scoticus)");
 		mi.setModulesMenuGroup(detectorsGroup);	
 
 

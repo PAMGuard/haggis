@@ -4,21 +4,24 @@ import java.awt.BorderLayout;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.util.ArrayList;
 
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
 import fftManager.FFTDataUnit;
+import haggisdetector.HaggisControl;
 import haggisdetector.HaggisParameters;
-import PamController.PamController;
 import PamView.dialog.PamDialog;
+import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.SourcePanel;
 import PamguardMVC.PamDataBlock;
 
 public class HaggisParametersDialog extends PamDialog {
+
+	private static final long serialVersionUID = 1L;
 
 	/*
 	 * Make the dialog a singleton - saves time recreating it 
@@ -31,21 +34,29 @@ public class HaggisParametersDialog extends PamDialog {
 	/*
 	 * local copy of parameters
 	 */
-	HaggisParameters haggisParameters;
+	private HaggisParameters haggisParameters;
 	
 	/*
 	 * source panel is a handy utility for listing available data sources. 
 	 */
-	SourcePanel sourcePanel;
+	private SourcePanel sourcePanel;
 	
 	/*
-	 * reference for data fields
-	 *
+	 * reference for data fields for detector part. 
 	 */
-	JTextField background, lowFreq, highFreq, threshold;
+	private JTextField background, lowFreq, highFreq, threshold;
 	
-	private HaggisParametersDialog(Frame parentFrame) {
-		super(parentFrame, "Workshop demo parameters", true);
+	/*
+	 * And for classifier part. 
+	 */
+	private JCheckBox keepUnclassified, scotlandOnly;
+	private JTextField minClassScore;
+
+	private HaggisControl haggisControl;
+	
+	private HaggisParametersDialog(HaggisControl haggisControl, Frame parentFrame) {
+		super(parentFrame, "Haggis parameters", true);
+		this.haggisControl = haggisControl;
 
 		/*
 		 * Use the Java layout manager to constructs nesting panels 
@@ -73,53 +84,69 @@ public class HaggisParametersDialog extends PamDialog {
 		sourceSubPanel.add(BorderLayout.CENTER, sourcePanel.getPanel());
 		mainPanel.add(BorderLayout.NORTH, sourceSubPanel);
 		
-		// make another panel for the rest of the parameters.
+		// make another panel for the detection parameters.
 		JPanel detPanel = new JPanel();
-		detPanel.setBorder(new TitledBorder("Detection parameters"));
+		detPanel.setBorder(new TitledBorder("Haggis Detection"));
 		// use the gridbaglaoyt - it's the most flexible
 		GridBagLayout layout = new GridBagLayout();
-		GridBagConstraints constraints = new GridBagConstraints();
+		GridBagConstraints constraints = new PamGridBagContraints();
 		detPanel.setLayout(layout);
 		constraints.anchor = GridBagConstraints.WEST;
 		constraints.ipadx = 3;
 		constraints.gridx = 0;
 		constraints.gridy = 0;
-		addComponent(detPanel, new JLabel("Background smoothing Constant"), constraints);
+		detPanel.add(new JLabel("Background smoothing Constant"), constraints);
 		constraints.gridx++;
-		addComponent(detPanel, background = new JTextField(4), constraints);
+		detPanel.add(background = new JTextField(4), constraints);
 		constraints.gridx++;
-		addComponent(detPanel, new JLabel(" s"), constraints);
+		detPanel.add(new JLabel(" s"), constraints);
 		constraints.gridx = 0;
 		constraints.gridy ++;
-		addComponent(detPanel, new JLabel("low Frequency"), constraints);
+		detPanel.add(new JLabel("low Frequency"), constraints);
 		constraints.gridx++;
-		addComponent(detPanel, lowFreq = new JTextField(6), constraints);
+		detPanel.add(lowFreq = new JTextField(6), constraints);
 		constraints.gridx++;
-		addComponent(detPanel, new JLabel(" Hz"), constraints);
+		detPanel.add(new JLabel(" Hz"), constraints);
 		constraints.gridx = 0;
 		constraints.gridy ++;
-		addComponent(detPanel, new JLabel("high Frequency"), constraints);
+		detPanel.add(new JLabel("high Frequency"), constraints);
 		constraints.gridx++;
-		addComponent(detPanel, highFreq = new JTextField(6), constraints);
+		detPanel.add(highFreq = new JTextField(6), constraints);
 		constraints.gridx++;
-		addComponent(detPanel, new JLabel(" Hz"), constraints);
+		detPanel.add(new JLabel(" Hz"), constraints);
 		constraints.gridx = 0;
 		constraints.gridy ++;
-		addComponent(detPanel, new JLabel("Detection Threshold"), constraints);
+		detPanel.add(new JLabel("Detection Threshold"), constraints);
 		constraints.gridx++;
-		addComponent(detPanel, threshold = new JTextField(4), constraints);
+		detPanel.add(threshold = new JTextField(4), constraints);
 		constraints.gridx++;
-		addComponent(detPanel, new JLabel(" dB"), constraints);
+		detPanel.add(new JLabel(" dB"), constraints);
 		
 		mainPanel.add(BorderLayout.CENTER, detPanel);
+		
+		// and a third panel for the classifier
+		JPanel classPanel = new JPanel(new GridBagLayout());
+		classPanel.setBorder(new TitledBorder("Haggis Classification"));
+		GridBagConstraints c = new PamGridBagContraints();
+		c.gridwidth = 2;
+		classPanel.add(keepUnclassified = new JCheckBox("Keep unclassified sounds"), c);
+		c.gridy++;
+		classPanel.add(scotlandOnly = new JCheckBox("Restrict search to Scottish highlands"), c);
+		c.gridy++;
+		c.gridwidth = 1;
+		classPanel.add(new JLabel("Minimum classification score  ", JLabel.RIGHT), c);
+		c.gridx++;
+		classPanel.add(minClassScore = new JTextField(4), c);
+		mainPanel.add(BorderLayout.SOUTH, classPanel);
+		
 		
 		setDialogComponent(mainPanel);
 	}
 	
-	public static HaggisParameters showDialog(Frame parentFrame, HaggisParameters haggisParameters) {
-		if (singleInstance == null || singleInstance.getParent() != parentFrame) {
-			singleInstance = new HaggisParametersDialog(parentFrame);
-		}
+	public static HaggisParameters showDialog(Frame parentFrame, HaggisControl haggisControl, HaggisParameters haggisParameters) {
+//		if (singleInstance == null || singleInstance.getParent() != parentFrame || singleInstance.haggisControl != haggisControl) {
+			singleInstance = new HaggisParametersDialog(haggisControl, parentFrame);
+//		}
 		singleInstance.haggisParameters = haggisParameters.clone();
 		singleInstance.setParams();
 		singleInstance.setVisible(true);
@@ -138,6 +165,11 @@ public class HaggisParametersDialog extends PamDialog {
 		lowFreq.setText(String.format("%d", haggisParameters.lowFreq));
 		highFreq.setText(String.format("%d", haggisParameters.highFreq));
 		threshold.setText(String.format("%.1f", haggisParameters.threshold));
+		
+		keepUnclassified.setSelected(haggisParameters.keepUnclassified);
+		scotlandOnly.setSelected(haggisParameters.scotlandOnly);
+		minClassScore.setText(String.format("%3.2f", haggisParameters.minConfidence));
+		
 	}
 
 	@Override
@@ -171,7 +203,16 @@ public class HaggisParametersDialog extends PamDialog {
 			haggisParameters.threshold = Double.valueOf(threshold.getText());
 		}
 		catch (NumberFormatException ex) {
-			return false;
+			return showWarning("Invalid detection parameter (freuqencies must be integer values)");
+		}
+		
+		haggisParameters.keepUnclassified = keepUnclassified.isSelected();
+		haggisParameters.scotlandOnly = scotlandOnly.isSelected();
+		try {
+			haggisParameters.minConfidence = Double.valueOf(minClassScore.getText());
+		}
+		catch (NumberFormatException ex) {
+			return showWarning("Invalid minimum classification score value");
 		}
 		
 		return true;

@@ -29,12 +29,12 @@ import haggisdetector.HaggisProcess;
  * Provide a graphics panel, or panels that can be added to the bottom of spectrogram
  * displays. The implementation of DisplayPanelProvider is only there to let Pamguard
  * know that panels can be created. On request, this will create any number
- * of WorkshopPluginPanels which will get added to the displays. 
+ * of Panels which will get added to the displays. 
  * 
  * There are two basic ways that these things can update their data. One is to 
  * follow cue of the redrawing of the spectrogram, the other is to subscribe to 
  * the some data block coming out of the detector. In this instance, we subscribe to 
- * the backgroundDataBlock in the WorkshopProcess.  
+ * the backgroundDataBlock in the HaggisProcess.  
  * 
  * Note that we're handling several channels of data here !
  *  
@@ -43,21 +43,21 @@ import haggisdetector.HaggisProcess;
  */
 public class HaggisPluginPanelProvider implements DisplayPanelProvider {
 	
-	private HaggisControl workshopController;
+	private HaggisControl haggisController;
 
-	public HaggisPluginPanelProvider(HaggisControl workshopController) {
+	public HaggisPluginPanelProvider(HaggisControl haggisController) {
 		// hold a reference to the Controller running this display
-		this.workshopController = workshopController;
+		this.haggisController = haggisController;
 		// tell the provider list that I'm available.
 		DisplayProviderList.addDisplayPanelProvider(this);
 	}
 
 	public DisplayPanel createDisplayPanel(DisplayPanelContainer displayPanelContainer) {
-		return new WorkshopPluginPanel(this, displayPanelContainer);
+		return new HaggisPanel(this, displayPanelContainer);
 	}
 
 	public String getDisplayPanelName() {
-		return "Workshop demo detector";
+		return "Haggis detector";
 	}
 
 	/**
@@ -65,7 +65,7 @@ public class HaggisPluginPanelProvider implements DisplayPanelProvider {
 	 * @author Doug
 	 *
 	 */
-	public class WorkshopPluginPanel extends DisplayPanel implements PamObserver{
+	public class HaggisPanel extends DisplayPanel implements PamObserver{
 
 		private HaggisPluginPanelProvider haggisPluginPanelProvider;
 		
@@ -79,10 +79,10 @@ public class HaggisPluginPanelProvider implements DisplayPanelProvider {
 		
 		PamDataBlock backgroundDataBlock;
 		
-		public WorkshopPluginPanel(HaggisPluginPanelProvider haggisPluginPanelProvider, DisplayPanelContainer displayPanelContainer) {
+		public HaggisPanel(HaggisPluginPanelProvider haggisPluginPanelProvider, DisplayPanelContainer displayPanelContainer) {
 			super(haggisPluginPanelProvider, displayPanelContainer);
 			this.haggisPluginPanelProvider = haggisPluginPanelProvider;
-			haggisProcess = haggisPluginPanelProvider.workshopController.getWorkshopProcess();
+			haggisProcess = haggisPluginPanelProvider.haggisController.getHaggisProcess();
 			westAxis = new PamAxis(0, 0, 1, 1, minValue, maxValue, true, "dB", "%.0f");
 
 			// subscribe to the background data block
@@ -132,7 +132,7 @@ public class HaggisPluginPanelProvider implements DisplayPanelProvider {
 		}
 
 		public String getObserverName() {
-			return "Workshop plug in panel";
+			return "Haggis plug in panel";
 		}
 
 		public long getRequiredDataHistory(PamObservable o, Object arg) {
@@ -193,7 +193,7 @@ public class HaggisPluginPanelProvider implements DisplayPanelProvider {
 			 * Draw the threshold line
 			 */
 			g.setColor(Color.BLACK);
-			double threshold = workshopController.getWorkshopProcessParameters().threshold;
+			double threshold = haggisController.getHaggisParameters().threshold;
 			int yb = getYPixel(threshold);
 			g.drawLine(0, yb, imWidth, yb);
 			

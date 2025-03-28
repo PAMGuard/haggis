@@ -12,120 +12,96 @@ import PamController.PamControlledUnitSettings;
 import PamController.PamControllerInterface;
 import PamController.PamSettingManager;
 import PamController.PamSettings;
-import PamModel.PamDependency;
-import PamModel.PamModuleInfo;
-import PamView.PamSymbol;
-import PamView.PamSymbolDialog;
-import fftManager.FFTDataUnit;
 import haggisdetector.swing.HaggisParametersDialog;
 import haggisdetector.swing.HaggisPluginPanelProvider;
 
 /**
  * Simple detector designed to detect the Scottish Wild Haggis
- * Haggis scoticus https://haggiswildlifefoundation.com/what-is-wild-haggis/
- * 
- * The detector is a very simple in band energy detector. It will 
- * subscribe to a block of FFT (spectrogram) data and measure 
- * the background noise in a given frequency band over some time period 
+ * <em>Haggis scoticus</em> https://haggiswildlifefoundation.com/what-is-wild-haggis/
+ * <br>
+ * The detector is a very simple in band energy detector followed by a statistical classifier.
+ * The detector will subscribe to a block of FFT (spectrogram) data and measure
+ * the background noise in a given frequency band over some time period
  * and compare the signal to that background measure. If the SNR is >
- * threshold a detection starts, if it's below threshold it stops again. 
- * 
- * @author Doug
+ * threshold a detection starts, if it's below threshold it stops again.
+ * <br>
+ * The statistical classifier then analyses the incoming sound and attempts
+ * to classify it to Haggis sub species.
+ * <br>
+ * Given the low likelihood of actually encountering a wild haggis, the main purpose
+ * of this detector is to act as a template for developers wishing to create
+ * their own detectors for more common species.
+ * <br>
+ * All PAMGuard modules start with an instance of PamControlledUnit, so please scroll on ...
+ *
+ * @author Doug Gillespie
  *
  */
+public class HaggisControl extends PamControlledUnit implements PamSettings {
 
-public class HaggisControl extends PamControlledUnit implements PamSettings{
+	private HaggisProcess haggisProcess;
 
-	HaggisProcess haggisProcess; 
-	
-	HaggisParameters haggisParameters;
-	
+	private HaggisParameters haggisParameters;
+
 	private HaggisPluginPanelProvider haggisPluginPanelProvider;
-	
+
 	public static final String unitType = "Haggis Detector";
-	
+
 	/**
-	 * Must have a default constructor that takes a single String as an argument. 
-	 * @param unitName Instance specific name to give this module. 
+	 * Must have a default constructor that takes a single String as an argument.
+	 * @param unitName Instance specific name to give this module.
 	 */
 	public HaggisControl(String unitName) {
 		super(unitType, unitName);
 
 		/*
-		 * create the parameters that will control the process. 
+		 * create the parameters that will control the process.
 		 * (do this before creating the process in case the process
-		 * tries to access them from it's constructor). 
-		 */ 
+		 * tries to access them from it's constructor).
+		 */
 		haggisParameters = new HaggisParameters();
-		
+
 		/*
-		 * make a WorkshopProcess - which will actually do the detecting
+		 * make a HaggisProcess - which will actually do the detecting
 		 * for us. Although the super class PamControlledUnit keeps a list
-		 * of processes in this module, it's also useful to keep a local 
+		 * of processes in this module, it's also useful to keep a local
 		 * reference.
+		 * Adding the process means that PAMGuards core management tools can
+		 * find this process, and eventually any output data from the process
 		 */
 		addPamProcess(haggisProcess = new HaggisProcess(this));
-		
+
 		/*
 		 * provide plug in panels for the bottom of the spectrogram displays
 		 * (and any future displays that support plug in panels)
 		 */
 		haggisPluginPanelProvider = new HaggisPluginPanelProvider(this);
-		
+
 		/*
 		 * Tell the PAmguard settings manager that we have settings we wish to
 		 * be saved between runs. IF settings already exist, the restoreSettings()
-		 * function will get called back from here with the most recent settings. 
+		 * function will get called back from here with the most recent settings.
 		 */
 		PamSettingManager.getInstance().registerSettings(this);
 	}
-	
+
 	@Override
 	public void notifyModelChanged(int changeType) {
 		super.notifyModelChanged(changeType);
-		
+
 		/*
 		 * This gets called every time a new module is added - make sure
-		 * that the workshopProcess get's a chance to look around and see
-		 * if there is data it wants to subscribe to. 
+		 * that the HaggisProcess get's a chance to look around and see
+		 * if there is data it wants to subscribe to.
 		 */
 		switch (changeType) {
 		case PamControllerInterface.ADD_CONTROLLEDUNIT:
 		case PamControllerInterface.REMOVE_CONTROLLEDUNIT:
 		case PamControllerInterface.ADD_DATABLOCK:
 		case PamControllerInterface.REMOVE_DATABLOCK:
-			getWorkshopProcess().prepareProcess();
+			getHaggisProcess().prepareProcess();
 		}
 	}
-
-	/**
-	 * This next function sets up a menu which will be added to the main Display menu
-	 */
-//	@Override
-//	public JMenuItem createDisplayMenu(Frame parentFrame) {
-//		JMenuItem menuItem = new JMenuItem(getUnitName() + " Map symbol");
-//		menuItem.addActionListener(new MapSymbolSelect());
-//		return menuItem;
-//	}
-	
-	/*
-	 * Menu actionlistener, using a standard Pamgaurd symbol dialog to 
-	 * select the map symbol shape and colour. 
-	 */
-//	class MapSymbolSelect implements ActionListener {
-//
-//		public void actionPerformed(ActionEvent e) {
-//
-//			PamSymbol newSymbol = PamSymbolDialog.show(getPamView().getGuiFrame(), 
-//					workshopProcessParameters.mapSymbol);
-//			if (newSymbol != null) {
-//				workshopProcessParameters.mapSymbol = newSymbol;
-//			}
-//			
-//		}
-//		
-//	}
-	
 
 	/*
 	 * Menu item and action for detection parameters...
@@ -135,64 +111,64 @@ public class HaggisControl extends PamControlledUnit implements PamSettings{
 	@Override
 	public JMenuItem createDetectionMenu(Frame parentFrame) {
 		JMenuItem menuItem = new JMenuItem(getUnitName() + " Parameters");
-		menuItem.addActionListener(new SetParameters(parentFrame));
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showParamsDialog(parentFrame);
+			}
+		});
 		return menuItem;
 	}
-	
-	class SetParameters implements ActionListener {
 
-		Frame parentFrame;
-		
-		public SetParameters(Frame parentFrame) {
-			this.parentFrame = parentFrame;
+	/** 
+	 * Show the parameterd dialog and update process if they change. 
+	 * @param parentFrame
+	 */
+	private void showParamsDialog(Frame parentFrame) {
+		HaggisParameters newParams = HaggisParametersDialog.showDialog(parentFrame, this,
+				haggisParameters);
+		/*
+		 * The dialog returns null if the cancel button was set. If it's
+		 * not null, then clone the parameters onto the main parameters reference
+		 * and call preparePRocess to make sure they get used !
+		 */
+		if (newParams != null) {
+			haggisParameters = newParams.clone();
+			getHaggisProcess().prepareProcess();
 		}
-
-		public void actionPerformed(ActionEvent e) {
-
-			HaggisParameters newParams = HaggisParametersDialog.showDialog(parentFrame, 
-					getWorkshopProcessParameters());
-			/*
-			 * The dialog returns null if the cancel button was set. If it's 
-			 * not null, then clone the parameters onto the main parameters reference
-			 * and call preparePRocess to make sure they get used !
-			 */
-			if (newParams != null) {
-				haggisParameters = newParams.clone();
-				getWorkshopProcess().prepareProcess();
-			}
-			
-		}
-		
 	}
 
 	/**
 	 * These next three functions are needed for the PamSettings interface
 	 * which will enable Pamguard to save settings between runs
 	 */
+	@Override
 	public Serializable getSettingsReference() {
-		return getWorkshopProcessParameters();
+		return getHaggisParameters();
 	}
 
+	@Override
 	public long getSettingsVersion() {
 		return HaggisParameters.serialVersionUID;
 	}
 
+	@Override
 	public boolean restoreSettings(PamControlledUnitSettings pamControlledUnitSettings) {
 		haggisParameters = (HaggisParameters) pamControlledUnitSettings.getSettings();
 		return true;
 	}
 
 	/**
-	 * @return the workshopProcess
+	 * @return the haggisProcess
 	 */
-	public HaggisProcess getWorkshopProcess() {
+	public HaggisProcess getHaggisProcess() {
 		return haggisProcess;
 	}
 
 	/**
-	 * @return the workshopProcessParameters
+	 * @return the haggisParameters
 	 */
-	public HaggisParameters getWorkshopProcessParameters() {
+	public HaggisParameters getHaggisParameters() {
 		return haggisParameters;
 	}
 

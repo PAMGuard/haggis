@@ -24,26 +24,35 @@
 
 package haggisdetector.swing;
 
+import PamView.symbol.PamSymbolChooser;
 import PamView.symbol.StandardSymbolManager;
 import PamView.symbol.SymbolData;
 import PamguardMVC.PamDataBlock;
 import haggisdetector.HaggisControl;
 
 /**
- * @author mo55
+ * Symbol manager. This is a standard symbol manager with two additional modifiers, 
+ * the first of which will change colours based on the Haggis Type, the second on the score. 
+ * @author dg50
  *
  */
 public class HaggisSymbolManager extends StandardSymbolManager {
 
-	private HaggisControl workshopController;
+	private HaggisControl haggisController;
 
-	public HaggisSymbolManager(HaggisControl workshopController, PamDataBlock pamDataBlock) {
+	public HaggisSymbolManager(HaggisControl haggisController, PamDataBlock pamDataBlock) {
 		super(pamDataBlock, new SymbolData());
-		this.workshopController = workshopController;
+		this.haggisController = haggisController;
 
 		addSymbolOption(StandardSymbolManager.HAS_LINE);
 		addSymbolOption(HAS_CHANNEL_OPTIONS);
 		addSymbolOption(HAS_SYMBOL);
 	}
 
+	@Override
+	public void addSymbolModifiers(PamSymbolChooser psc) {
+		super.addSymbolModifiers(psc);
+		psc.addSymbolModifier(new HaggisSymbolModifier(psc));
+		psc.addSymbolModifier(new HaggisSymbolModifier2(psc));
+	}
 }

@@ -4,8 +4,10 @@ import generalDatabase.PamDetectionLogging;
 import generalDatabase.PamTableDefinition;
 import generalDatabase.PamTableItem;
 import generalDatabase.SQLTypes;
+import haggisdetector.HaggisClass;
 import haggisdetector.HaggisControl;
 import haggisdetector.HaggisDataUnit;
+import haggisdetector.HaggisTypes;
 
 import java.sql.Types;
 
@@ -14,19 +16,22 @@ import PamguardMVC.PamDataUnit;
 
 public class HaggisSQLLogging extends PamDetectionLogging {
 
-	HaggisControl workshopController;
+	HaggisControl haggisController;
 	
 	PamTableDefinition tableDefinition;
 	
 //	PamTableItem dateItem, durationItem, lowFreqItem, highFreqItem, energyItem, channelItem;
 	PamTableItem energyItem;
 	
-	public HaggisSQLLogging(HaggisControl workshopController, PamDataBlock pamDataBlock) {
+	// haggis classification
+	PamTableItem classScore, classType;
+	
+	public HaggisSQLLogging(HaggisControl haggisController, PamDataBlock pamDataBlock) {
 		// call the super constructor. 
 		super(pamDataBlock, UPDATE_POLICY_WRITENEW);
 		
 		// hold a reference to the Controller. 
-		this.workshopController = workshopController;
+		this.haggisController = haggisController;
 		
 		// create the table definition. 
 		tableDefinition = (PamTableDefinition) getTableDefinition();
@@ -34,6 +39,9 @@ public class HaggisSQLLogging extends PamDetectionLogging {
 
 		// add additional table items not included in PamDetectionLogging 
 		tableDefinition.addTableItem(energyItem = new PamTableItem("energyDB", Types.DOUBLE));
+		tableDefinition.addTableItem(classScore = new PamTableItem("Score", Types.DOUBLE));
+		tableDefinition.addTableItem(classType = new PamTableItem("Type", Types.CHAR, 12));
+		
 		tableDefinition.setUseCheatIndexing(true);
 	}
 
@@ -56,10 +64,19 @@ public class HaggisSQLLogging extends PamDetectionLogging {
 	@Override
 	protected PamDataUnit createDataUnit(SQLTypes sqlTypes, long timeMilliseconds, int databaseIndex) {
 		
-		HaggisDataUnit wdu = new HaggisDataUnit(timeMilliseconds, 0, 0, 0);	// correct values for channel, start sample and duration set in call to fillDataUnit 
-		fillDataUnit(sqlTypes, wdu);
-		wdu.setCalculatedAmlitudeDB(sqlTypes.makeDouble(energyItem.getValue()));
-		return wdu;
+		HaggisDataUnit haggisDaataUnit = new HaggisDataUnit(timeMilliseconds, 0, 0, 0);	// correct values for channel, start sample and duration set in call to fillDataUnit 
+		fillDataUnit(sqlTypes, haggisDaataUnit);
+		
+		haggisDaataUnit.setCalculatedAmlitudeDB(sqlTypes.makeDouble(energyItem.getValue()));
+		
+		// and stuff bespoke to the Haggis classification. 
+		double score = classScore.getDoubleValue();
+		String type = classType.getStringValue();
+		HaggisTypes hagType = HaggisTypes.valueOf(type);
+		HaggisClass haggisClass = new HaggisClass(hagType, score);
+		haggisDaataUnit.setHaggisClass(haggisClass);
+		
+		return haggisDaataUnit;
 	}
 
 }
