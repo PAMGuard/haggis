@@ -9,9 +9,14 @@ import javax.swing.JMenuItem;
 
 import PamController.PamControlledUnit;
 import PamController.PamControlledUnitSettings;
+import PamController.PamController;
 import PamController.PamControllerInterface;
 import PamController.PamSettingManager;
 import PamController.PamSettings;
+import PamController.soundMedium.GlobalMedium;
+import PamController.soundMedium.GlobalMedium.SoundMedium;
+import PamController.soundMedium.GlobalMediumManager;
+import PamView.dialog.warn.WarnOnce;
 import haggisdetector.swing.HaggisParametersDialog;
 import haggisdetector.swing.HaggisPluginPanelProvider;
 
@@ -83,6 +88,8 @@ public class HaggisControl extends PamControlledUnit implements PamSettings {
 		 * function will get called back from here with the most recent settings.
 		 */
 		PamSettingManager.getInstance().registerSettings(this);
+		
+		checkGlobalMedium();
 	}
 
 	@Override
@@ -100,6 +107,10 @@ public class HaggisControl extends PamControlledUnit implements PamSettings {
 		case PamControllerInterface.ADD_DATABLOCK:
 		case PamControllerInterface.REMOVE_DATABLOCK:
 			getHaggisProcess().prepareProcess();
+			break;
+		case PamControllerInterface.GLOBAL_MEDIUM_UPDATE:
+			checkGlobalMedium();
+			break;
 		}
 	}
 
@@ -118,6 +129,22 @@ public class HaggisControl extends PamControlledUnit implements PamSettings {
 			}
 		});
 		return menuItem;
+	}
+	
+	/**
+	 * Check to see that the global medium is set to air, if not
+	 * issue a warning to user. 
+	 */
+	private void checkGlobalMedium() {
+		GlobalMediumManager mediumManager = PamController.getInstance().getGlobalMediumManager();
+		SoundMedium current = mediumManager.getCurrentMedium();
+		if (current == SoundMedium.Air) {
+			return; // all OK. 
+		}
+		String tit = "Sound Medium Warning";
+		String msg = String.format("<html>The Sound Medium is currently set to %s, but you are loading a module \"%s\" for detection of a Terrestrial Species.<br><br>"
+				+ "Please to to the File / Sound Medium menu to switch to Air.</html>", current, getUnitType());
+		WarnOnce.showWarning(tit, msg, WarnOnce.WARNING_MESSAGE);
 	}
 
 	/** 

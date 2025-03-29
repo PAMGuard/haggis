@@ -58,6 +58,17 @@ public class HaggisSQLLogging extends PamDetectionLogging {
 
 		HaggisDataUnit wdu = (HaggisDataUnit) pamDataUnit;
 		energyItem.setValue(wdu.getAmplitudeDB());
+		
+		HaggisDataUnit haggisDataUnit = (HaggisDataUnit) pamDataUnit;
+		HaggisClass haggisClass = haggisDataUnit.getHaggisClass();
+		if (haggisClass == null) {
+			classScore.setValue(null);
+			classType.setValue(null);
+		}
+		else {
+			classScore.setValue(haggisClass.getScore());
+			classType.setValue(haggisClass.getHaggisType().toString());
+		}
 	}
 
 
@@ -72,9 +83,11 @@ public class HaggisSQLLogging extends PamDetectionLogging {
 		// and stuff bespoke to the Haggis classification. 
 		double score = classScore.getDoubleValue();
 		String type = classType.getStringValue();
-		HaggisTypes hagType = HaggisTypes.valueOf(type);
-		HaggisClass haggisClass = new HaggisClass(hagType, score);
-		haggisDaataUnit.setHaggisClass(haggisClass);
+		if (type != null) {
+			HaggisTypes hagType = HaggisTypes.valueOf(type);
+			HaggisClass haggisClass = new HaggisClass(hagType, score);
+			haggisDaataUnit.setHaggisClass(haggisClass);
+		}
 		
 		return haggisDaataUnit;
 	}
